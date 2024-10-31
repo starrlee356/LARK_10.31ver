@@ -2,7 +2,7 @@ import os
 import re
 import sys
 from tqdm import tqdm
-from global_config import QUERY_STRUCTS
+from global_config import *
 import numpy as np
 import argparse
 import json
@@ -60,15 +60,12 @@ def compute_score(qtype, mode, args):
     if os.path.exists(log_score_filename):
         os.remove(log_score_filename)
 
-    if args.random_size > 0:
-        idx_list = json.load(open(os.path.join(args.output_path, "random_list", f"{qtype}_random_list.json"), "r"))
-    else:
-        idx_list = [i for i in range(args.whole_size)]
 
     scores = {"hits@1":0,"hits@3":0,"hits@10":0,
             "ndcg@1":0,"ndcg@3":0,"ndcg@10":0,
             "mrr":0}
     
+    idx_list = json.load(open(os.path.join(args.random_list_path, f"{qtype}_random_list.json"), "r"))
     for idx in idx_list:
         gt_filename = os.path.join(args.ground_truth_path, f"{qtype}_{idx}_answer.txt")
         pred_filename = os.path.join(args.prediction_path, f"{qtype}_{idx}_predicted_answer.txt")
@@ -93,13 +90,13 @@ def compute_score(qtype, mode, args):
         
     with open(log_score_filename, mode) as score_file:
         print(qtype, file=score_file)
-        print("HITS@1:",scores["hits@1"]/len(idx_list), file=score_file)
-        print("HITS@3:",scores["hits@3"]/len(idx_list), file=score_file)
-        print("HITS@10:",scores["hits@10"]/len(idx_list), file=score_file)
-        print("NDCG@1:",scores["ndcg@1"]/len(idx_list), file=score_file)
-        print("NDCG@3:",scores["ndcg@3"]/len(idx_list), file=score_file)
-        print("NDCG@10:",scores["ndcg@10"]/len(idx_list), file=score_file)
-        print("MRR:",scores["mrr"]/len(idx_list), file=score_file)
+        print("HITS@1:",scores["hits@1"]/args.qnum, file=score_file)
+        print("HITS@3:",scores["hits@3"]/args.qnum, file=score_file)
+        print("HITS@10:",scores["hits@10"]/args.qnum, file=score_file)
+        print("NDCG@1:",scores["ndcg@1"]/args.qnum, file=score_file)
+        print("NDCG@3:",scores["ndcg@3"]/args.qnum, file=score_file)
+        print("NDCG@10:",scores["ndcg@10"]/args.qnum, file=score_file)
+        print("MRR:",scores["mrr"]/args.qnum, file=score_file)
 
 def compute_score_main(args):
     if args.qtype == "all":

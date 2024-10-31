@@ -23,14 +23,14 @@ def process_logical_queries(logical_query, qtype, idx):
     premise_question = {"premise": premise,
                         "question": question
                         }
-    question_file_path = os.path.join(f"{args.output_path}","LARK_test_questions",f"{qtype}_{idx}_question.json")
+    question_file_path = os.path.join(f"{args.output_path}","LARK_all_questions",f"{qtype}_{idx}_question.json")
 
     with open(question_file_path,"w") as q_f:
         json.dump(premise_question, q_f)
 
 #Premise Generation
 def main():
-    test_id2q = pkl.load(open(os.path.join(args.data_path, "processed", "test_idx2query.pkl"), "rb"))
+    id2q = pkl.load(open(os.path.join(args.data_path, "processed", "idx2query.pkl"), "rb"))
 
     entity_triplets, relation_triplets = {}, {}
     triplet_files = [os.path.join(f"{args.data_path}","train.txt"), 
@@ -63,14 +63,14 @@ def main():
                                         entity_triplets_path=os.path.join(f"{args.output_path}","entity_triplets.pkl"),
                                         relation_triplets_path=os.path.join(f"{args.output_path}","relation_triplets.pkl"))
     
-    step_question_path = os.path.join(f"{args.output_path}","LARK_test_questions")
+    step_question_path = os.path.join(f"{args.output_path}","LARK_all_questions")
 
     if not os.path.exists(step_question_path):
         os.makedirs(step_question_path)
 
-    for qtype, qnum in test_q_num.items():
-        for idx in range(qnum):
-            q = test_id2q[qtype][idx]
+    for qtype, qnum in whole_q_num.items():
+        for idx in tqdm(range(qnum), desc=f"qtype"):
+            q = id2q[qtype][idx]
             process_logical_queries(q, qtype, idx)
         
         

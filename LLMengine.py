@@ -3,14 +3,22 @@ import os
 import re
 import ollama
 from llm import LLM_ollama, LLM_vllm, LLM_zhipu
+import time
 
 class BaseLLMAnswer:
-    def __init__(self, model_name, api):
+    def __init__(self, LLM):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.max_source_length = 512
-        self.max_new_tokens = 64
-        self.model_name = model_name
-        self.api = api        
+        self.max_new_tokens = 64     
+        self.LLM = LLM
+        self.prompt_token_len, self.gen_token_len = self.LLM.get_token_length()
+        self.llm_cnt = 0
+        self.llm_time = 0
+
+    def get_token_len(self):
+        p, g = self.LLM.get_token_length()
+        self.prompt_token_len = p - self.prompt_token_len
+        self.gen_token_len = g - self.gen_token_len
 
     def clean_string(self, string):
         clean_str = re.sub(r"[^0-9,]","",string)
@@ -52,17 +60,11 @@ class BaseLLMAnswer:
     def generate_answer(self, premise_questions):
         response = []
         for q in premise_questions:
-            """
-            content = ollama.generate(model=self.model_name, prompt=q)["response"]
-            response.append(content)
-            """
-            if self.api == "zhipu":
-                llm = LLM_zhipu(self.model_name)
-            if self.api == "vllm":
-                llm = LLM_vllm(self.model_name)
-            if self.api == "ollama":
-                llm = LLM_ollama(self.model_name)
-            res = llm.run(q)
+            start = time.time()
+            res = self.LLM.run(q)
+            end = time.time()
+            self.llm_time += end - start
+            self.llm_cnt += 1 
             response.append(res)
         return response
     
